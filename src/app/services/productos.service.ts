@@ -8,7 +8,7 @@ import { ProductoInterface } from '../interfaces/producto.interface';
 })
 export class ProductosService {
   cargando = true;
-
+  productosFiltrado: ProductoInterface[] = [];
   productos: ProductoInterface[] = [];
   constructor( private http: HttpClient ) {
     this.cargarProductos();
@@ -18,14 +18,25 @@ export class ProductosService {
   private cargarProductos() {
     this.http.get('https://angular-html-c29f0.firebaseio.com/productos_idx.json')
     .subscribe( (resp: ProductoInterface[]) => {
-      console.log(resp);
-
-
       setTimeout(() => {
         this.productos = resp;
         this.cargando = false;
       }, 1000); // Delay estatico de un segundo
 
     } );
+  }
+
+  // para poder cambiar el contenido de ccada item cuando se de clcic sobre la imagen
+  getProducto (id: string) {
+    return this.http.get(`https://angular-html-c29f0.firebaseio.com/productos/${id}.json`);
+    // las "tildes" que encierran la url son para poder concatenar codigo javascript dentro del string del url
+
+  }
+
+  buscarProducto(termino: string) {
+   this.productosFiltrado =  this.productos.filter( producto => {
+      return true;
+    });
+
   }
 }
