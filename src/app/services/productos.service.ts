@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ProductoInterface } from '../interfaces/producto.interface';
+// import { reject } from 'q';
 
 
 @Injectable({
@@ -15,15 +16,19 @@ export class ProductosService {
   }
 
 
-  private cargarProductos() {
-    this.http.get('https://angular-html-c29f0.firebaseio.com/productos_idx.json')
-    .subscribe( (resp: ProductoInterface[]) => {
-      setTimeout(() => {
-        this.productos = resp;
-        this.cargando = false;
-      }, 1000); // Delay estatico de un segundo
+  private cargarProductos(  ) {
 
-    } );
+    return new Promise( (resolve) => { // falta el reject
+      this.http.get('https://angular-html-c29f0.firebaseio.com/productos_idx.json')
+      .subscribe( (resp: ProductoInterface[]) => {
+        setTimeout(() => {
+          this.productos = resp;
+          this.cargando = false;
+        }, 1000); // Delay estatico de un segundo
+        resolve();
+      } );
+    });
+
   }
 
   // para poder cambiar el contenido de ccada item cuando se de clcic sobre la imagen
@@ -34,9 +39,33 @@ export class ProductosService {
   }
 
   buscarProducto(termino: string) {
-   this.productosFiltrado =  this.productos.filter( producto => {
-      return true;
-    });
 
+    if (this.productos.length === 0) {
+      // esperar a que esten cargados los productos
+      this.cargarProductos().then(() => {
+        // despues de tener los productos
+        // aplicar filtro
+        this.filtrarProductos(termino);
+
+      });
+    } else {
+      // aplicar filtro
+      this.filtrarProductos(termino);
+    }
+
+
+  }
+
+  private filtrarProductos( termino: string) {
+    termino = termino.toLocaleLowerCase();
+    // console.log(this.productos);
+    this.productosFiltrado = [];
+    this.productos.forEach( prod => {
+      const tituloLower = prod.titulo.toLocaleLowerCase();
+
+      if (prod.categoria.indexOf(termino) >= 0 || (tituloLower.indexOf(termino) >= 0)) {
+        this.productosFiltrado.push(prod);
+      }
+    });
   }
 }
